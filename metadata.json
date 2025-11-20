@@ -1,0 +1,5 @@
+{
+  "name": "产品管理平台",
+  "description": "基于 React 和 Gemini AI 的现代化 IT 服务管理与产品管理系统。提供智能产品研发计划，产品工单分流、及产品对外发布文档看板。",
+  "requestFramePermissions": []
+}
