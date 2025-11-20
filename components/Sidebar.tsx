@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ViewState } from '../types';
-import { LayoutDashboard, Ticket, Package, Settings, LifeBuoy, LogOut, FileText, Map, Box } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package, Settings, LifeBuoy, LogOut, FileText, Map, Box, Compass } from 'lucide-react';
 
 interface SidebarProps {
   currentView: ViewState;
@@ -10,6 +10,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
   const menuItems = [
+    { id: 'PORTAL' as ViewState, label: '导航门户', icon: Compass },
     { id: 'DASHBOARD' as ViewState, label: '仪表盘', icon: LayoutDashboard },
     { id: 'ROADMAP' as ViewState, label: '版本全景', icon: Map },
     { id: 'TICKETS' as ViewState, label: '工单管理', icon: Ticket },
@@ -34,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) =
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
           <button
             key={item.id}

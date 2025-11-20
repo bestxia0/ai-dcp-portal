@@ -1,5 +1,5 @@
 
-import { Product, Ticket, TicketPriority, TicketStatus, User, UserRole, ProductVersion, Release, Document, DocumentCategory, OutboundRequest } from "./types";
+import { Product, Ticket, TicketPriority, TicketStatus, User, UserRole, ProductVersion, Release, Document, DocumentCategory, OutboundRequest, NavGroup } from "./types";
 
 export const CURRENT_USER: User = {
   id: 'u1',
@@ -311,5 +311,46 @@ export const MOCK_OUTBOUND_REQUESTS: OutboundRequest[] = [
     status: 'APPROVED',
     operator: 'Ops Team',
     operationTime: '2023-10-13 09:30:00'
+  }
+];
+
+export const MOCK_NAV_GROUPS: NavGroup[] = [
+  {
+    id: 'g1',
+    title: '研发工具链 (DevOps)',
+    items: [
+      { id: 'r1', name: 'GitLab', description: '代码托管与 CI/CD 流水线平台', url: 'https://gitlab.com', icon: 'Gitlab', bgColor: 'bg-orange-100 text-orange-600' },
+      { id: 'r2', name: 'Jenkins', description: '自动化构建、测试与部署服务', url: '#', icon: 'Container', bgColor: 'bg-slate-100 text-slate-600' },
+      { id: 'r3', name: 'SonarQube', description: '代码质量检查与安全扫描', url: '#', icon: 'Code2', bgColor: 'bg-blue-100 text-blue-600' },
+      { id: 'r4', name: 'Nexus Repo', description: 'Maven/NPM 制品库管理', url: '#', icon: 'Database', bgColor: 'bg-green-100 text-green-600' },
+    ]
+  },
+  {
+    id: 'g2',
+    title: '产品与协作 (Collaboration)',
+    items: [
+      { id: 'r5', name: 'Confluence', description: '企业级知识库与产品文档协作', url: '#', icon: 'BookOpen', bgColor: 'bg-blue-100 text-blue-700' },
+      { id: 'r6', name: 'Jira Software', description: '敏捷项目管理与缺陷追踪系统', url: '#', icon: 'Ticket', bgColor: 'bg-blue-50 text-blue-600' },
+      { id: 'r7', name: 'Figma', description: 'UI/UX 界面设计与原型协作', url: '#', icon: 'Figma', bgColor: 'bg-purple-100 text-purple-600' },
+      { id: 'r8', name: 'Miro', description: '在线白板与头脑风暴', url: '#', icon: 'Layout', bgColor: 'bg-yellow-100 text-yellow-600' },
+    ]
+  },
+  {
+    id: 'g3',
+    title: '资源与文档 (Resources)',
+    items: [
+      { id: 'r9', name: 'Ant Design', description: '企业级 UI 设计语言与组件库', url: 'https://ant.design', icon: 'Component', bgColor: 'bg-red-50 text-red-600' },
+      { id: 'r10', name: 'Tailwind CSS', description: '原子化 CSS 框架文档', url: 'https://tailwindcss.com', icon: 'Wind', bgColor: 'bg-cyan-50 text-cyan-600' },
+      { id: 'r11', name: 'React Docs', description: 'React 官方中文文档', url: 'https://react.dev', icon: 'Atom', bgColor: 'bg-slate-800 text-cyan-400' },
+    ]
+  },
+  {
+    id: 'g4',
+    title: '常用系统 (Management)',
+    items: [
+      { id: 'r12', name: 'OA 系统', description: '内部办公自动化审批流程', url: '#', icon: 'Briefcase', bgColor: 'bg-indigo-100 text-indigo-600' },
+      { id: 'r13', name: 'CRM 客户管理', description: '销售线索与客户关系维护', url: '#', icon: 'Users', bgColor: 'bg-pink-100 text-pink-600' },
+      { id: 'r14', name: 'BI 报表平台', description: '运营数据可视化分析大屏', url: '#', icon: 'BarChart', bgColor: 'bg-emerald-100 text-emerald-600' },
+    ]
   }
 ];

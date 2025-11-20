@@ -7,12 +7,13 @@ import { TicketDetail } from './components/TicketDetail';
 import { DocumentCenter } from './components/DocumentCenter';
 import { VersionRoadmap } from './components/VersionRoadmap';
 import { OutboundRequests } from './components/OutboundRequests';
-import { MOCK_PRODUCTS, MOCK_TICKETS, MOCK_VERSIONS, MOCK_RELEASES, MOCK_DOCUMENTS, MOCK_OUTBOUND_REQUESTS } from './constants';
-import { Ticket, ViewState, ProductVersion, Document, OutboundRequest } from './types';
+import { NavPortal } from './components/NavPortal';
+import { MOCK_PRODUCTS, MOCK_TICKETS, MOCK_VERSIONS, MOCK_RELEASES, MOCK_DOCUMENTS, MOCK_OUTBOUND_REQUESTS, MOCK_NAV_GROUPS } from './constants';
+import { Ticket, ViewState, ProductVersion, Document, OutboundRequest, NavGroup } from './types';
 import { Search, Bell, Plus } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<ViewState>('DASHBOARD');
+  const [currentView, setCurrentView] = useState<ViewState>('PORTAL');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
   
@@ -20,6 +21,7 @@ const App: React.FC = () => {
   const [versions, setVersions] = useState<ProductVersion[]>(MOCK_VERSIONS);
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
   const [outboundRequests, setOutboundRequests] = useState<OutboundRequest[]>(MOCK_OUTBOUND_REQUESTS);
+  const [navGroups, setNavGroups] = useState<NavGroup[]>(MOCK_NAV_GROUPS);
 
   // Handler to update a ticket (e.g., after AI analysis or status change)
   const handleUpdateTicket = (updatedTicket: Ticket) => {
@@ -29,6 +31,13 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (currentView) {
+      case 'PORTAL':
+        return (
+          <NavPortal 
+            groups={navGroups}
+            onUpdateGroups={setNavGroups}
+          />
+        );
       case 'DASHBOARD':
         return (
           <Dashboard 

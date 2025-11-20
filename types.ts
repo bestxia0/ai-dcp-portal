@@ -183,4 +183,21 @@ export interface OutboundRequest {
   operationTime?: string; // 操作时间
 }
 
-export type ViewState = 'DASHBOARD' | 'ROADMAP' | 'TICKETS' | 'PRODUCTS' | 'DOCUMENTS' | 'OUTBOUND' | 'SETTINGS';
+// --- Navigation Portal Types ---
+
+export interface NavResource {
+  id: string;
+  name: string; // Display Name
+  description: string; // Short description
+  url: string; // External Link
+  icon: string; // Lucide icon name (mapped in component) or generic
+  bgColor?: string; // Tailwind background class for icon
+}
+
+export interface NavGroup {
+  id: string;
+  title: string;
+  items: NavResource[];
+}
+
+export type ViewState = 'PORTAL' | 'DASHBOARD' | 'ROADMAP' | 'TICKETS' | 'PRODUCTS' | 'DOCUMENTS' | 'OUTBOUND' | 'SETTINGS';
