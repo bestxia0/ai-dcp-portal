@@ -8,9 +8,10 @@ import { DocumentCenter } from './components/DocumentCenter';
 import { VersionRoadmap } from './components/VersionRoadmap';
 import { OutboundRequests } from './components/OutboundRequests';
 import { NavPortal } from './components/NavPortal';
-import { MOCK_PRODUCTS, MOCK_TICKETS, MOCK_VERSIONS, MOCK_RELEASES, MOCK_DOCUMENTS, MOCK_OUTBOUND_REQUESTS, MOCK_NAV_GROUPS } from './constants';
-import { Ticket, ViewState, ProductVersion, Document, OutboundRequest, NavGroup } from './types';
-import { Search, Bell, Plus } from 'lucide-react';
+import { ProductCatalog } from './components/ProductCatalog';
+import { MOCK_PRODUCTS, MOCK_TICKETS, MOCK_VERSIONS, MOCK_RELEASES, MOCK_DOCUMENTS, MOCK_OUTBOUND_REQUESTS, MOCK_NAV_GROUPS, CURRENT_USER } from './constants';
+import { Ticket, ViewState, ProductVersion, Document, OutboundRequest, NavGroup, Product } from './types';
+import { Search, Bell, Plus, LogOut } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('PORTAL');
@@ -18,6 +19,7 @@ const App: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
   
   // State for data
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
   const [versions, setVersions] = useState<ProductVersion[]>(MOCK_VERSIONS);
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
   const [outboundRequests, setOutboundRequests] = useState<OutboundRequest[]>(MOCK_OUTBOUND_REQUESTS);
@@ -42,7 +44,7 @@ const App: React.FC = () => {
         return (
           <Dashboard 
             tickets={tickets} 
-            products={MOCK_PRODUCTS}
+            products={products}
             versions={versions}
             releases={MOCK_RELEASES}
             documents={documents}
@@ -60,7 +62,7 @@ const App: React.FC = () => {
         return (
           <OutboundRequests 
              requests={outboundRequests}
-             products={MOCK_PRODUCTS}
+             products={products}
              versions={versions}
              onUpdateRequests={setOutboundRequests}
           />
@@ -90,33 +92,10 @@ const App: React.FC = () => {
         );
       case 'PRODUCTS':
         return (
-          <div className="animate-in fade-in duration-500">
-             <h2 className="text-2xl font-bold text-slate-800 mb-6">产品目录</h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {MOCK_PRODUCTS.map(product => (
-                  <div key={product.id} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:border-indigo-200 transition-colors">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 font-bold">
-                        {product.name.substring(0,1)}
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${product.health > 90 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        Health: {product.health}%
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-lg text-slate-800 mb-1">{product.name}</h3>
-                    <p className="text-sm text-slate-500 mb-4 h-10 overflow-hidden">{product.description}</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                       <div className="text-xs text-slate-500">
-                         Owner: <span className="text-slate-700 font-medium">{product.owner}</span>
-                       </div>
-                       <div className="text-xs font-medium text-indigo-600">
-                         {product.activeTickets} active tickets
-                       </div>
-                    </div>
-                  </div>
-                ))}
-             </div>
-          </div>
+          <ProductCatalog 
+            products={products}
+            onUpdateProducts={setProducts}
+          />
         );
       case 'DOCUMENTS':
         return (
@@ -137,7 +116,7 @@ const App: React.FC = () => {
       
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-4 w-1/3">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -148,11 +127,26 @@ const App: React.FC = () => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full">
+          
+          {/* Right Side Actions & User Profile */}
+          <div className="flex items-center gap-6">
+            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
+            
+            <div className="h-6 w-px bg-slate-200"></div>
+
+            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+               <div className="text-right hidden sm:block">
+                 <div className="text-sm font-bold text-slate-700">{CURRENT_USER.name}</div>
+                 <div className="text-xs text-slate-500">{CURRENT_USER.role}</div>
+               </div>
+               <div className="w-9 h-9 rounded-full bg-indigo-100 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
+                 <img src={CURRENT_USER.avatar} alt={CURRENT_USER.name} className="w-full h-full object-cover" />
+               </div>
+               <LogOut className="w-4 h-4 text-slate-400 hover:text-slate-600 ml-1" />
+            </div>
           </div>
         </header>
 

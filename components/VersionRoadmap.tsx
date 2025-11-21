@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ProductVersion, VersionStatus, VersionType } from '../types';
 import { 
   Plus, Edit2, Search, Filter, Calendar, User, Tag, Layers, 
-  CheckCircle2, AlertCircle, Archive, X, Save, ArrowRight 
+  CheckCircle2, AlertCircle, Archive, X, Save, ArrowRight,
+  ChevronLeft, ChevronRight, MoreHorizontal
 } from 'lucide-react';
 
 interface VersionRoadmapProps {
@@ -16,6 +17,10 @@ export const VersionRoadmap: React.FC<VersionRoadmapProps> = ({ versions, onUpda
   const [currentVersion, setCurrentVersion] = useState<Partial<ProductVersion>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   // -- Helper functions --
 
@@ -83,15 +88,68 @@ export const VersionRoadmap: React.FC<VersionRoadmapProps> = ({ versions, onUpda
     setIsModalOpen(false);
   };
 
-  const filteredVersions = versions.filter(v => {
-    if (!showArchived && v.isArchived) return false;
-    return (
-      v.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.version.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  // Filtering Logic
+  const filteredVersions = useMemo(() => {
+    return versions.filter(v => {
+      if (!showArchived && v.isArchived) return false;
+      return (
+        v.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.version.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [versions, showArchived, searchQuery]);
 
-  // -- Render Components --
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, showArchived]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredVersions.length / PAGE_SIZE);
+  const paginatedVersions = filteredVersions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Gantt Chart Logic
+  const { ganttMonths, ganttStart, ganttEnd } = useMemo(() => {
+    const today = new Date();
+    // Start: 1 month ago (1st day)
+    const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    // End: 3 months later (Last day)
+    const end = new Date(today.getFullYear(), today.getMonth() + 4, 0);
+    
+    const months = [];
+    let current = new Date(start);
+    while (current <= end) {
+      months.push(new Date(current));
+      current.setMonth(current.getMonth() + 1);
+    }
+
+    return { ganttMonths: months, ganttStart: start, ganttEnd: end };
+  }, []);
+
+  const getGanttBarPosition = (v: ProductVersion) => {
+    const start = new Date(v.startDate).getTime();
+    const end = new Date(v.endDate).getTime();
+    const windowStart = ganttStart.getTime();
+    const windowEnd = ganttEnd.getTime();
+    const totalDuration = windowEnd - windowStart;
+
+    // Check if visible in window
+    if (end < windowStart || start > windowEnd) return null;
+
+    let left = ((start - windowStart) / totalDuration) * 100;
+    let width = ((end - start) / totalDuration) * 100;
+
+    // Clip logic
+    if (left < 0) {
+      width += left;
+      left = 0;
+    }
+    if (left + width > 100) {
+      width = 100 - left;
+    }
+    
+    return { left: `${left}%`, width: `${width}%` };
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -112,7 +170,7 @@ export const VersionRoadmap: React.FC<VersionRoadmapProps> = ({ versions, onUpda
                id="showArchived"
                checked={showArchived}
                onChange={(e) => setShowArchived(e.target.checked)}
-               className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+               className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
              />
              <label htmlFor="showArchived" className="text-sm text-slate-600 cursor-pointer">显示已归档</label>
            </div>
@@ -135,8 +193,72 @@ export const VersionRoadmap: React.FC<VersionRoadmapProps> = ({ versions, onUpda
         </div>
       </div>
 
-      {/* Data Table Container - Horizontal Scroll */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* Gantt Chart View */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 overflow-hidden">
+        <div className="flex items-center gap-2 mb-4">
+           <Calendar className="w-5 h-5 text-indigo-500" />
+           <h3 className="font-bold text-slate-800">版本计划全景图 (近5个月)</h3>
+        </div>
+        
+        <div className="relative w-full overflow-x-auto min-h-[150px]">
+           {/* Timeline Header */}
+           <div className="flex border-b border-slate-200 pb-2 text-sm text-slate-500">
+              <div className="w-40 shrink-0 font-bold text-slate-800 pl-2">产品/版本</div>
+              <div className="flex-1 flex relative">
+                 {ganttMonths.map((date, index) => (
+                   <div key={index} className="flex-1 text-center border-l border-dashed border-slate-100 first:border-none">
+                     {date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short' })}
+                   </div>
+                 ))}
+              </div>
+           </div>
+
+           {/* Gantt Rows - Using Filtered Data */}
+           <div className="space-y-3 mt-3 relative">
+              {/* Vertical Grid Lines */}
+              <div className="absolute left-40 right-0 top-0 bottom-0 flex pointer-events-none">
+                 {ganttMonths.map((_, index) => (
+                   <div key={index} className="flex-1 border-l border-dashed border-slate-100 first:border-none h-full"></div>
+                 ))}
+              </div>
+
+              {filteredVersions.slice(0, 15).map(v => {
+                const pos = getGanttBarPosition(v);
+                return (
+                  <div key={v.id} className="flex items-center relative z-0 h-8 group">
+                     <div className="w-40 shrink-0 pr-4 flex flex-col justify-center">
+                        <span className="text-xs font-bold text-slate-700 truncate" title={v.productName}>{v.productName}</span>
+                        <span className="text-[10px] text-slate-500 truncate font-mono">{v.version}</span>
+                     </div>
+                     <div className="flex-1 relative h-full">
+                        {pos && (
+                          <div 
+                            className={`absolute top-1.5 h-5 rounded shadow-sm text-white text-[10px] flex items-center px-2 whitespace-nowrap cursor-pointer hover:opacity-90 transition-opacity ${
+                              v.status === 'RELEASED' ? 'bg-green-500' :
+                              v.status === 'DEVELOPING' ? 'bg-blue-500' :
+                              v.status === 'DELIVERED' ? 'bg-teal-600' :
+                              'bg-indigo-400'
+                            }`}
+                            style={pos}
+                            onClick={() => handleEdit(v)}
+                            title={`${v.version}: ${v.startDate} ~ ${v.endDate}`}
+                          >
+                            <span className="truncate">{v.name || v.version}</span>
+                          </div>
+                        )}
+                     </div>
+                  </div>
+                );
+              })}
+              {filteredVersions.length === 0 && (
+                <div className="text-center text-slate-400 py-4 text-sm">暂无匹配版本数据</div>
+              )}
+           </div>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap text-sm">
             <thead>
@@ -159,7 +281,7 @@ export const VersionRoadmap: React.FC<VersionRoadmapProps> = ({ versions, onUpda
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredVersions.map((v) => (
+              {paginatedVersions.map((v) => (
                 <tr key={v.id} className={`hover:bg-slate-50 transition-colors group ${v.isArchived ? 'opacity-60 bg-slate-50/50' : ''}`}>
                   <td className="p-4 sticky left-0 bg-white group-hover:bg-slate-50 transition-colors z-10 border-r border-slate-100 font-medium text-slate-800">
                     {v.productName}
@@ -223,9 +345,45 @@ export const VersionRoadmap: React.FC<VersionRoadmapProps> = ({ versions, onUpda
                   </td>
                 </tr>
               ))}
+              {paginatedVersions.length === 0 && (
+                <tr><td colSpan={15} className="p-8 text-center text-slate-400">没有找到相关数据</td></tr>
+              )}
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
+           <div className="text-xs text-slate-500">
+              显示 {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredVersions.length)} 到 {Math.min(currentPage * PAGE_SIZE, filteredVersions.length)} 条，共 {filteredVersions.length} 条
+           </div>
+           <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1 rounded hover:bg-slate-200 disabled:opacity-50 disabled:hover:bg-transparent"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600" />
+              </button>
+              {Array.from({length: totalPages}, (_, i) => i + 1).map(p => (
+                 <button
+                   key={p}
+                   onClick={() => setCurrentPage(p)}
+                   className={`w-7 h-7 rounded text-xs font-medium ${currentPage === p ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                 >
+                   {p}
+                 </button>
+              ))}
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="p-1 rounded hover:bg-slate-200 disabled:opacity-50 disabled:hover:bg-transparent"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600" />
+              </button>
+           </div>
+        </div>
+
       </div>
 
       {/* --- EDIT MODAL --- */}
